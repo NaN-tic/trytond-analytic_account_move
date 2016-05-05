@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/field[@name='lines']" position="before">
+        <group col="4" colspan="4" name="analytic_accounts">
+            <field name="analytic_accounts"/>
+        </group>
+    </xpath>
+</data>

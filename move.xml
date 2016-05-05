@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+    <data>
+        <!-- account.move -->
+        <record model="ir.ui.view" id="move_view_form">
+            <field name="model">account.move</field>
+            <field name="inherit" ref="account.move_view_form"/>
+            <field name="name">move_form</field>
+        </record>
+
+        <!-- account.move.line -->
+        <record model="ir.ui.view" id="move_line_view_form">
+            <field name="model">account.move.line</field>
+            <field name="inherit" ref="account.move_line_view_form"/>
+            <field name="name">move_line_form</field>
+        </record>
+
+        <record model="ir.ui.view" id="move_line_view_form_move">
+            <field name="model">account.move.line</field>
+            <field name="inherit" ref="account.move_line_view_form_move"/>
+            <field name="name">move_line_form</field>
+        </record>
+
+        <record model="ir.ui.view" id="move_line_view_tree_move">
+            <field name="model">account.move.line</field>
+            <field name="inherit" ref="account.move_line_view_tree_move"/>
+            <field name="name">move_line_tree_move</field>
+        </record>
+    </data>
+</tryton>
