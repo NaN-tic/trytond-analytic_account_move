@@ -28,22 +28,31 @@ class AnalyticAccount:
 
     @classmethod
     def delete(cls, accounts):
-        Move = Pool().get('account.move')
+        pool = Pool()
+        Move = pool.get('account.move')
+        MoveLine = pool.get('account.move.line')
         super(AnalyticAccount, cls).delete(accounts)
-        # Restart the cache on the fields_view_get method of account.move
+        # Restart the cache on the fields_view_get method
         Move._fields_view_get_cache.clear()
+        MoveLine._fields_view_get_cache.clear()
 
     @classmethod
     def create(cls, vlist):
-        Move = Pool().get('account.move')
+        pool = Pool()
+        Move = pool.get('account.move')
+        MoveLine = pool.get('account.move.line')
         accounts = super(AnalyticAccount, cls).create(vlist)
-        # Restart the cache on the fields_view_get method of account.move
+        # Restart the cache on the fields_view_get method
         Move._fields_view_get_cache.clear()
+        MoveLine._fields_view_get_cache.clear()
         return accounts
 
     @classmethod
     def write(cls, accounts, values, *args):
-        Move = Pool().get('account.move')
+        pool = Pool()
+        Move = pool.get('account.move')
+        MoveLine = pool.get('account.move.line')
         super(AnalyticAccount, cls).write(accounts, values, *args)
-        # Restart the cache on the fields_view_get method of account.move
+        # Restart the cache on the fields_view_get method
         Move._fields_view_get_cache.clear()
+        MoveLine._fields_view_get_cache.clear()
