@@ -113,6 +113,9 @@ Create analytic accounts::
     >>> project2_analytic_acc = AnalyticAccount(root=root, parent=root,
     ...     name='Project 2')
     >>> project2_analytic_acc.save()
+    >>> project3_analytic_acc = AnalyticAccount(root=root, parent=root,
+    ...     name='Project 3')
+    >>> project3_analytic_acc.save()
 
 Create parties::
 
@@ -177,6 +180,25 @@ Check analytic accounts amounts::
     >>> project2_analytic_acc.debit
     Decimal('1500.00')
 
+Copy the move and check analytic lines has been removed but not the accounts::
+
+    >>> move2 = Move(Move.copy([move.id], config.context)[0])
+    >>> [l.analytic_lines for l in move2.lines]
+    [[], [], [], []]
+    >>> sorted([getattr(l, 'analytic_account_%s' % root.id).name
+    ...         for l in move.lines if l.account.id == expense.id])
+    [u'Project 1', u'Project 2']
+
+Post the duplicated move and check analytic accounts amounts::
+
+    >>> move2.click('post')
+    >>> project1_analytic_acc.reload()
+    >>> project1_analytic_acc.debit
+    Decimal('4000.00')
+    >>> project2_analytic_acc.reload()
+    >>> project2_analytic_acc.debit
+    Decimal('3000.00')
+
 Move to draft Wage Payment Move::
 
     >>> journal_expense.update_posted = True
@@ -188,3 +210,17 @@ Check analytic lines has been removed::
     >>> move.reload()
     >>> [l.analytic_lines for l in move.lines]
     [[], [], [], []]
+
+Check analytic accounts amounts::
+
+    >>> move2.click('post')
+    >>> project1_analytic_acc.reload()
+    >>> project1_analytic_acc.debit
+    Decimal('2000.00')
+    >>> project2_analytic_acc.reload()
+    >>> project2_analytic_acc.debit
+    Decimal('1500.00')
+
+Delete an analytic account::
+
+    >>> project3_analytic_acc.delete()

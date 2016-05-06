@@ -241,9 +241,7 @@ class MoveLine:
         lines_w_aa = []
         lines_wo_aa = []
         for line in lines:
-            if (line.analytic_accounts and line.analytic_accounts.accounts
-                    or line.move and line.move.analytic_accounts
-                    and line.move.analytic_accounts.accounts):
+            if line.analytic_accounts and line.analytic_accounts.accounts:
                 lines_w_aa.append(line)
             else:
                 lines_wo_aa.append(line)
