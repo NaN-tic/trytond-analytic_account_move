@@ -47,7 +47,7 @@ class MoveLine:
     analytic_accounts = fields.Many2One('analytic_account.account.selection',
         'Analytic Accounts', states={
             'readonly': (
-                Eval('_parent_move.state', Eval('move_state')) != 'draft'),
+                Eval('_parent_move.state', Eval('move_state')) == 'posted'),
             }, depends=['move_state'])
 
     def add_analytic_lines(self, analytic_accounts):
