@@ -1,6 +1,6 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from trytond.model import ModelSQL, ModelView, fields
+from trytond.model import ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 
@@ -9,13 +9,10 @@ __all__ = ['Move', 'MoveLine']
 
 class AnalyticAccountsMixin:
     __metaclass__ = PoolMeta
+    _analytic_accounts_required_states = None
 
     analytic_accounts = fields.Many2One('analytic_account.account.selection',
-        'Analytic Accounts',
-        states={
-            'readonly': Eval('state') != 'draft',
-            },
-        depends=['state'])
+        'Analytic Accounts')
 
     @classmethod
     def _view_look_dom_arch(cls, tree, type, field_children=None):
@@ -37,7 +34,7 @@ class AnalyticAccountsMixin:
         fields.update(AnalyticAccount.analytic_accounts_fields_get(
                 analytic_accounts_field, fields_names,
                 states=cls.analytic_accounts.states,
-                required_states=Eval('state') == 'draft'))
+                required_states=cls._analytic_accounts_required_states))
         return fields
 
     @classmethod
@@ -85,6 +82,15 @@ class AnalyticAccountsMixin:
                                 ham, field2 = field.split('.', 1)
                                 id2record[line.id][field] = account[field2]
         return res
+
+    @classmethod
+    def search(cls, domain, offset=0, limit=None, order=None, count=False,
+            query=False):
+        if order:
+            order = [x for x in order
+                if not x[0].startswith('analytic_account_')]
+        return super(AnalyticAccountsMixin, cls).search(domain, offset=offset,
+            limit=limit, order=order, count=count, query=query)
 
     @classmethod
     def create(cls, vlist):
@@ -183,6 +189,14 @@ class AnalyticAccountsMixin:
 class Move(AnalyticAccountsMixin):
     __name__ = 'account.move'
     __metaclass__ = PoolMeta
+    _analytic_accounts_required_states = Eval('state') == 'posted'
+
+    @classmethod
+    def __setup__(cls):
+        super(Move, cls).__setup__()
+        cls.analytic_accounts.states['readonly'] = Eval('state') != 'draft'
+        if 'state' not in cls.analytic_accounts.depends:
+            cls.analytic_accounts.depends.append('state')
 
     @classmethod
     @ModelView.button
@@ -232,6 +246,16 @@ class Move(AnalyticAccountsMixin):
 class MoveLine(AnalyticAccountsMixin):
     __name__ = 'account.move.line'
     __metaclass__ = PoolMeta
+    _analytic_accounts_required_states = (
+        Eval('_parent_move.state', Eval('move_state')) == 'posted')
+
+    @classmethod
+    def __setup__(cls):
+        super(MoveLine, cls).__setup__()
+        cls.analytic_accounts.states['readonly'] = (
+            Eval('_parent_move.state', Eval('move_state')) != 'draft')
+        if 'move_state' not in cls.analytic_accounts.depends:
+            cls.analytic_accounts.depends.append('move_state')
 
     def add_analytic_lines(self, analytic_accounts):
         pool = Pool()

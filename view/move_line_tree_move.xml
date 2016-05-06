@@ -4,5 +4,6 @@
 <data>
     <xpath expr="/tree/field[@name='tax_lines']" position="before">
         <field name="analytic_accounts"/>
+        <field name="move_state" tree_invisible="1"/>
     </xpath>
 </data>
