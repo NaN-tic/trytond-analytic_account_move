@@ -17,7 +17,10 @@ class AnalyticAccountsMixin:
     @classmethod
     def _view_look_dom_arch(cls, tree, type, field_children=None):
         AnalyticAccount = Pool().get('analytic_account.account')
-        AnalyticAccount.convert_view(tree)
+        if not (type == 'tree' and not AnalyticAccount.search(
+                    [('parent', '=', None)], count=True)):
+            # If no root analytics and view is tree, convert_view fails
+            AnalyticAccount.convert_view(tree)
         return super(AnalyticAccountsMixin, cls)._view_look_dom_arch(
             tree, type,
             field_children=field_children)
