@@ -7,12 +7,72 @@ from trytond.pyson import Eval
 __all__ = ['Move', 'MoveLine']
 
 
-class AnalyticAccountsMixin:
+class Move:
+    __name__ = 'account.move'
     __metaclass__ = PoolMeta
-    _analytic_accounts_required_states = None
 
+    @classmethod
+    @ModelView.button
+    def post(cls, moves):
+        cls.create_analytic_lines(moves)
+        super(Move, cls).post(moves)
+
+    @classmethod
+    def create_analytic_lines(cls, moves):
+        for move in moves:
+            for line in move.lines:
+                if line.add_analytic_lines(line.analytic_accounts.accounts):
+                    line.save()
+
+    @classmethod
+    @ModelView.button
+    def draft(cls, moves):
+        pool = Pool()
+        AnalyticLine = pool.get('analytic_account.line')
+
+        super(Move, cls).draft(moves)
+
+        to_delete = []
+        for move in moves:
+            for line in move.lines:
+                if line.analytic_accounts and line.analytic_accounts.accounts:
+                    to_delete += [al for al in line.analytic_lines]
+        if to_delete:
+            AnalyticLine.delete(to_delete)
+
+
+class MoveLine:
+    __name__ = 'account.move.line'
+    __metaclass__ = PoolMeta
     analytic_accounts = fields.Many2One('analytic_account.account.selection',
-        'Analytic Accounts')
+        'Analytic Accounts', states={
+            'readonly': (
+                Eval('_parent_move.state', Eval('move_state')) != 'draft'),
+            }, depends=['move_state'])
+
+    def add_analytic_lines(self, analytic_accounts):
+        pool = Pool()
+        AnalyticLine = pool.get('analytic_account.line')
+
+        if self.analytic_lines:
+            return False
+        if not self.analytic_accounts or not self.analytic_accounts.accounts:
+            return False
+
+        self.analytic_lines = []
+        for account in analytic_accounts:
+            analytic_line = AnalyticLine()
+            analytic_line.name = (self.description if self.description
+                else self.move_description)
+            analytic_line.debit = self.debit
+            analytic_line.credit = self.credit
+            analytic_line.account = account
+            analytic_line.journal = self.journal
+            analytic_line.date = self.date
+            # analytic_line.reference = self.invoice.reference
+            analytic_line.party = self.party
+            self.analytic_lines.append(analytic_line)
+        return True
 
     @classmethod
     def _view_look_dom_arch(cls, tree, type, field_children=None):
@@ -21,7 +81,7 @@ class AnalyticAccountsMixin:
                     [('parent', '=', None)], count=True)):
             # If no root analytics and view is tree, convert_view fails
             AnalyticAccount.convert_view(tree)
-        return super(AnalyticAccountsMixin, cls)._view_look_dom_arch(
+        return super(MoveLine, cls)._view_look_dom_arch(
             tree, type,
             field_children=field_children)
 
@@ -29,21 +89,22 @@ class AnalyticAccountsMixin:
     def fields_get(cls, fields_names=None):
         AnalyticAccount = Pool().get('analytic_account.account')
 
-        fields = super(AnalyticAccountsMixin, cls).fields_get(fields_names)
+        fields = super(MoveLine, cls).fields_get(fields_names)
 
-        analytic_accounts_field = super(AnalyticAccountsMixin, cls).fields_get(
+        analytic_accounts_field = super(MoveLine, cls).fields_get(
                 ['analytic_accounts'])['analytic_accounts']
 
         fields.update(AnalyticAccount.analytic_accounts_fields_get(
                 analytic_accounts_field, fields_names,
                 states=cls.analytic_accounts.states,
-                required_states=cls._analytic_accounts_required_states))
+                required_states=Eval('_parent_move.state', Eval('move_state')
+                    ) == 'posted'))
         return fields
 
     @classmethod
     def default_get(cls, fields, with_rec_name=True):
         fields = [x for x in fields if not x.startswith('analytic_account_')]
-        return super(AnalyticAccountsMixin, cls).default_get(fields,
+        return super(MoveLine, cls).default_get(fields,
             with_rec_name=with_rec_name)
 
     @classmethod
@@ -54,7 +115,7 @@ class AnalyticAccountsMixin:
         else:
             fields_names2 = fields_names
 
-        res = super(AnalyticAccountsMixin, cls).read(ids,
+        res = super(MoveLine, cls).read(ids,
             fields_names=fields_names2)
 
         if not fields_names:
@@ -92,7 +153,7 @@ class AnalyticAccountsMixin:
         if order:
             order = [x for x in order
                 if not x[0].startswith('analytic_account_')]
-        return super(AnalyticAccountsMixin, cls).search(domain, offset=offset,
+        return super(MoveLine, cls).search(domain, offset=offset,
             limit=limit, order=order, count=count, query=query)
 
     @classmethod
@@ -114,7 +175,7 @@ class AnalyticAccountsMixin:
             else:
                 selection, = Selection.create([selection_vals])
                 vals['analytic_accounts'] = selection.id
-        return super(AnalyticAccountsMixin, cls).create(vlist)
+        return super(MoveLine, cls).create(vlist)
 
     @classmethod
     def write(cls, *args):
@@ -159,7 +220,7 @@ class AnalyticAccountsMixin:
                                 ],
                             })
             args.extend((lines, values))
-        super(AnalyticAccountsMixin, cls).write(*args)
+        super(MoveLine, cls).write(*args)
 
     @classmethod
     def delete(cls, records):
@@ -170,118 +231,13 @@ class AnalyticAccountsMixin:
             if record.analytic_accounts:
                 selection_ids.append(record.analytic_accounts.id)
 
-        super(AnalyticAccountsMixin, cls).delete(records)
+        super(MoveLine, cls).delete(records)
         Selection.delete(Selection.browse(selection_ids))
 
     @classmethod
-    def copy(cls, records, default=None):
+    def copy(cls, lines, default=None):
         Selection = Pool().get('analytic_account.account.selection')
 
-        new_records = super(AnalyticAccountsMixin, cls).copy(records,
-            default=default)
-
-        for record in new_records:
-            if record.analytic_accounts:
-                selection, = Selection.copy([record.analytic_accounts])
-                cls.write([record], {
-                        'analytic_accounts': selection.id,
-                        })
-        return new_records
-
-
-class Move(AnalyticAccountsMixin):
-    __name__ = 'account.move'
-    __metaclass__ = PoolMeta
-    _analytic_accounts_required_states = Eval('state') == 'posted'
-
-    @classmethod
-    def __setup__(cls):
-        super(Move, cls).__setup__()
-        cls.analytic_accounts.states['readonly'] = Eval('state') != 'draft'
-        if 'state' not in cls.analytic_accounts.depends:
-            cls.analytic_accounts.depends.append('state')
-
-    @classmethod
-    @ModelView.button
-    def post(cls, moves):
-        cls.create_analytic_lines(moves)
-        super(Move, cls).post(moves)
-
-    @classmethod
-    def create_analytic_lines(cls, moves):
-        for move in moves:
-            move._create_analytic_lines()
-
-    def _create_analytic_lines(self):
-        move_analytic_accounts = (self.analytic_accounts.accounts
-            if self.analytic_accounts else None)
-        for line in self.lines:
-            if line.analytic_accounts and line.analytic_accounts.accounts:
-                line.add_analytic_lines(line.analytic_accounts.accounts)
-                line.save()
-            elif (move_analytic_accounts
-                    and line.account.analytic_is_required):
-                line.add_analytic_lines(move_analytic_accounts)
-                line.save()
-
-    @classmethod
-    @ModelView.button
-    def draft(cls, moves):
-        pool = Pool()
-        AnalyticLine = pool.get('analytic_account.line')
-
-        super(Move, cls).draft(moves)
-
-        to_delete = []
-        for move in moves:
-            if move.analytic_accounts and move.analytic_accounts.accounts:
-                to_delete += [al for l in move.lines
-                    for al in l.analytic_lines]
-            else:
-                for line in move.lines:
-                    if (line.analytic_accounts
-                            and line.analytic_accounts.accounts):
-                        to_delete += [al for al in line.analytic_lines]
-        if to_delete:
-            AnalyticLine.delete(to_delete)
-
-
-class MoveLine(AnalyticAccountsMixin):
-    __name__ = 'account.move.line'
-    __metaclass__ = PoolMeta
-    _analytic_accounts_required_states = (
-        Eval('_parent_move.state', Eval('move_state')) == 'posted')
-
-    @classmethod
-    def __setup__(cls):
-        super(MoveLine, cls).__setup__()
-        cls.analytic_accounts.states['readonly'] = (
-            Eval('_parent_move.state', Eval('move_state')) != 'draft')
-        if 'move_state' not in cls.analytic_accounts.depends:
-            cls.analytic_accounts.depends.append('move_state')
-
-    def add_analytic_lines(self, analytic_accounts):
-        pool = Pool()
-        AnalyticLine = pool.get('analytic_account.line')
-
-        if self.analytic_lines:
-            return
-        self.analytic_lines = []
-        for account in analytic_accounts:
-            analytic_line = AnalyticLine()
-            analytic_line.name = (self.description if self.description
-                else self.move_description)
-            analytic_line.debit = self.debit
-            analytic_line.credit = self.credit
-            analytic_line.account = account
-            analytic_line.journal = self.journal
-            analytic_line.date = self.date
-            # analytic_line.reference = self.invoice.reference
-            analytic_line.party = self.party
-            self.analytic_lines.append(analytic_line)
-
-    @classmethod
-    def copy(cls, lines, default=None):
         lines_w_aa = []
         lines_wo_aa = []
         for line in lines:
@@ -292,16 +248,23 @@ class MoveLine(AnalyticAccountsMixin):
             else:
                 lines_wo_aa.append(line)
 
-        res = []
+        new_records = []
         if lines_w_aa:
             if default:
                 new_default = default.copy()
             else:
                 new_default = {}
             new_default['analytic_lines'] = None
-            res += super(AnalyticAccountsMixin, cls).copy(lines_w_aa,
+            new_records += super(MoveLine, cls).copy(lines_w_aa,
                 default=new_default)
         if lines_wo_aa:
-            res += super(AnalyticAccountsMixin, cls).copy(lines_wo_aa,
+            new_records += super(MoveLine, cls).copy(lines_wo_aa,
                 default=default)
-        return res
+
+        for record in new_records:
+            if record.analytic_accounts:
+                selection, = Selection.copy([record.analytic_accounts])
+                cls.write([record], {
+                        'analytic_accounts': selection.id,
+                        })
+        return new_records

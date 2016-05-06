@@ -8,7 +8,6 @@ from .move import *
 def register():
     Pool.register(
         AnalyticAccount,
-        Account,
         Move,
         MoveLine,
         module='analytic_account_move', type_='model')
