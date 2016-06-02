@@ -21,7 +21,9 @@ class Move:
     def create_analytic_lines(cls, moves):
         for move in moves:
             for line in move.lines:
-                if line.add_analytic_lines(line.analytic_accounts.accounts):
+                if (line.analytic_accounts and line.analytic_accounts.accounts
+                        and line.add_analytic_lines(
+                            line.analytic_accounts.accounts)):
                     line.save()
 
     @classmethod
