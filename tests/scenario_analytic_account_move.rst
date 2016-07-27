@@ -12,6 +12,14 @@ Imports::
     >>> from dateutil.relativedelta import relativedelta
     >>> from decimal import Decimal
     >>> from proteus import config, Model, Wizard
+    >>> from trytond.modules.company.tests.tools import create_company, \
+    ...     get_company
+    >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
+    ...     create_chart, get_accounts
+    >>> from.trytond.modules.account_invoice.tests.tools import \
+    ...     set_fiscalyear_invoice_sequences, create_payment_term
+    >>> from trytond.modules.account_asset.tests.tools \
+    ...     import add_asset_accounts
     >>> today = datetime.date.today()
 
 Create database::
@@ -21,38 +29,17 @@ Create database::
 
 Install account::
 
-    >>> Module = Model.get('ir.module.module')
-    >>> modules = Module.find([
+    >>> Module = Model.get('ir.module')
+    >>> module, = Module.find([
     ...         ('name', '=', 'analytic_account_move'),
     ...         ])
-    >>> Module.install([x.id for x in modules], config.context)
-    >>> Wizard('ir.module.module.install_upgrade').execute('upgrade')
+    >>> module.click('install')
+    >>> Wizard('ir.module.install_upgrade').execute('upgrade')
 
 Create company::
 
-    >>> Currency = Model.get('currency.currency')
-    >>> CurrencyRate = Model.get('currency.currency.rate')
-    >>> Company = Model.get('company.company')
-    >>> Party = Model.get('party.party')
-    >>> company_config = Wizard('company.company.config')
-    >>> company_config.execute('company')
-    >>> company = company_config.form
-    >>> party = Party(name='Dunder Mifflin')
-    >>> party.save()
-    >>> company.party = party
-    >>> currencies = Currency.find([('code', '=', 'USD')])
-    >>> if not currencies:
-    ...     currency = Currency(name='U.S. Dollar', symbol='$', code='USD',
-    ...         rounding=Decimal('0.01'), mon_grouping='[3, 3, 0]',
-    ...         mon_decimal_point='.', mon_thousands_sep=',')
-    ...     currency.save()
-    ...     CurrencyRate(date=today + relativedelta(month=1, day=1),
-    ...         rate=Decimal('1.0'), currency=currency).save()
-    ... else:
-    ...     currency, = currencies
-    >>> company.currency = currency
-    >>> company_config.execute('add')
-    >>> company, = Company.find()
+    >>> _ = create_company()
+    >>> company = get_company()
 
 Reload the context::
 
@@ -78,29 +65,11 @@ Create fiscal year::
 
 Create chart of accounts::
 
-    >>> AccountTemplate = Model.get('account.account.template')
-    >>> Account = Model.get('account.account')
-    >>> account_template, = AccountTemplate.find([('parent', '=', None)])
-    >>> create_chart = Wizard('account.create_chart')
-    >>> create_chart.execute('account')
-    >>> create_chart.form.account_template = account_template
-    >>> create_chart.form.company = company
-    >>> create_chart.execute('create_account')
-    >>> receivable, = Account.find([
-    ...         ('kind', '=', 'receivable'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> payable, = Account.find([
-    ...         ('kind', '=', 'payable'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> expense, = Account.find([
-    ...         ('kind', '=', 'expense'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> create_chart.form.account_receivable = receivable
-    >>> create_chart.form.account_payable = payable
-    >>> create_chart.execute('create_properties')
+    >>> _ = create_chart(company)
+    >>> accounts = get_accounts(company)
+    >>> receivable = accounts['receivable']
+    >>> payable = accounts['payable']
+    >>> expense = accounts['expense']
 
 Create analytic accounts::
 
@@ -143,11 +112,13 @@ Create Wage Payment Move::
     >>> line = move.lines.new()
     >>> line.account = expense
     >>> line.debit = Decimal(2000)
-    >>> setattr(line, 'analytic_account_%s' % root.id, project1_analytic_acc)
+    >>> entry, = line.analytic_accounts
+    >>> entry.account = project1_analytic_acc
     >>> line = move.lines.new()
     >>> line.account = expense
     >>> line.debit = Decimal(1500)
-    >>> setattr(line, 'analytic_account_%s' % root.id, project2_analytic_acc)
+    >>> entry, = line.analytic_accounts
+    >>> entry.account = project2_analytic_acc
     >>> line = move.lines.new()
     >>> line.account = payable
     >>> line.credit = Decimal(2000)
@@ -185,7 +156,7 @@ Copy the move and check analytic lines has been removed but not the accounts::
     >>> move2 = Move(Move.copy([move.id], config.context)[0])
     >>> [l.analytic_lines for l in move2.lines]
     [[], [], [], []]
-    >>> sorted([getattr(l, 'analytic_account_%s' % root.id).name
+    >>> sorted([l.analytic_accounts[0].account.name
     ...         for l in move.lines if l.account.id == expense.id])
     [u'Project 1', u'Project 2']
 
@@ -213,7 +184,6 @@ Check analytic lines has been removed::
 
 Check analytic accounts amounts::
 
-    >>> move2.click('post')
     >>> project1_analytic_acc.reload()
     >>> project1_analytic_acc.debit
     Decimal('2000.00')
