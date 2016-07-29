@@ -117,8 +117,5 @@ class AnalyticAccountEntry:
 
     @classmethod
     def search_company(cls, name, clause):
-        domain = super(AnalyticAccountEntry, cls).search_company(name, clause)
-        return ['OR',
-            domain,
-            [('origin.move.company',) + tuple(clause[1:]) +
-                tuple(('account.move.line',))]]
+        return [('origin.move.company',) + tuple(clause[1:]) +
+                tuple(('account.move.line',))]
