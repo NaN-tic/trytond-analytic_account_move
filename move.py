@@ -3,7 +3,6 @@
 from trytond.model import ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.modules.analytic_account import AnalyticMixin
-from trytond.pyson import Eval
 
 __all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry']
 __metaclass__ = PoolMeta
