@@ -21,7 +21,6 @@ class Move:
     @classmethod
     def create_analytic_lines(cls, moves):
         for move in moves:
-            # if not move.state == 'posted':
             for line in move.lines:
                 if (line.analytic_accounts and
                     line.set_analytic_lines(
