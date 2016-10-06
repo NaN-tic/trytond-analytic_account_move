@@ -2,9 +2,8 @@
 <!-- The COPYRIGHT file at the top level of this repository contains the full
      copyright notices and license terms. -->
 <data>
-    <xpath expr="/form/notebook" position="before">
-        <group col="4" colspan="4" name="analytic_accounts">
-            <field name="analytic_accounts"/>
-        </group>
+    <xpath expr="/form/notebook/page[@id='analytic']/field[@name='analytic_lines']"
+        position="before">
+        <field name="analytic_accounts" colspan="4"/>
     </xpath>
 </data>

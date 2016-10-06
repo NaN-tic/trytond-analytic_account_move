@@ -48,6 +48,16 @@ class Move:
 class MoveLine(AnalyticMixin):
     __name__ = 'account.move.line'
 
+    @classmethod
+    def __setup__(cls):
+        super(MoveLine, cls).__setup__()
+        cls.analytic_accounts.help = ('Fill it if you want to generate '
+            'analytic lines when post the move.\n'
+            'Normally, it isn\'t necessary when the move is generated from '
+            'another document which will have the analytics configuration.\n'
+            'If you set draft a move with analytic accounts, the analytic '
+            'lines are deleted to be generated again when post it.')
+
     def set_analytic_lines(self, analytic_accounts):
         pool = Pool()
         AnalyticLine = pool.get('analytic_account.line')
