@@ -21,5 +21,64 @@
             <field name="inherit" ref="account.move_line_view_tree_move"/>
             <field name="name">move_line_tree_move</field>
         </record>
+
+        <!-- Account Move Line Template -->
+        <record model="ir.ui.view" id="move_line_template_view_form">
+            <field name="model">account.move.line.template</field>
+            <field name="name">move_line_template_form</field>
+            <field name="inherit" ref="account.move_line_template_view_form"/>
+        </record>
+
+        <!-- Analytic Account Line Template -->
+        <record model="ir.ui.view" id="analytic_account_line_template_view_form">
+            <field name="model">analytic_account.line.template</field>
+            <field name="type">form</field>
+            <field name="name">analytic_account_line_template_form</field>
+        </record>
+        <record model="ir.ui.view" id="analytic_account_line_template_view_list">
+            <field name="model">analytic_account.line.template</field>
+            <field name="type">tree</field>
+            <field name="name">analytic_account_line_template_list</field>
+        </record>
+
+        <record model="ir.action.act_window" id="act_analytic_account_line_template_form">
+            <field name="name">Analytic Account Line Template</field>
+            <field name="res_model">analytic_account.line.template</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_analytic_account_line_template_form_view1">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="analytic_account_line_template_view_list"/>
+            <field name="act_window" ref="act_analytic_account_line_template_form"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_analytic_account_line_template_form_view2">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="analytic_account_line_template_view_form"/>
+            <field name="act_window" ref="act_analytic_account_line_template_form"/>
+        </record>
+
+        <!-- Access -->
+        <record model="ir.model.access" id="access_analytic_account_line_template">
+            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_analytic_account_line_template_account">
+            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="group" ref="account.group_account"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_delete" eval="False"/>
+        </record>
+        <record model="ir.model.access" id="access_analytic_account_line_template_account_admin">
+            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="group" ref="account.group_account_admin"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_delete" eval="True"/>
+        </record>
     </data>
 </tryton>
