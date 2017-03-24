@@ -172,3 +172,47 @@ Check analytic accounts amounts::
 Delete an analytic account::
 
     >>> project3_analytic_acc.delete()
+
+Create Move Template::
+
+    >>> MoveTemplate = Model.get('account.move.template')
+    >>> MoveLineTemplate = Model.get('account.move.line.template')
+    >>> AnalyticLineTemplate = Model.get('analytic_account.line.template')
+
+    >>> move_template = MoveTemplate()
+    >>> move_template.name = 'Move Template'
+    >>> move_template.journal = journal_expense
+    >>> line_template = MoveLineTemplate()
+    >>> move_template.lines.append(line_template)
+    >>> line_template.operation = 'debit'
+    >>> line_template.amount = '10'
+    >>> line_template.account = expense
+    >>> analytic_line_template = AnalyticLineTemplate()
+    >>> line_template.analytic_accounts.append(analytic_line_template)
+    >>> analytic_line_template.root = root
+    >>> analytic_line_template.account = project1_analytic_acc
+    >>> line_template = MoveLineTemplate()
+    >>> move_template.lines.append(line_template)
+    >>> line_template.operation = 'credit'
+    >>> line_template.amount = '10'
+    >>> line_template.account = expense
+    >>> move_template.save()
+
+Create Moves from template::
+
+    >>> create = Wizard('account.move.template.create')
+    >>> create.form.template = move_template
+    >>> create.execute('keywords')
+    >>> create.execute('create_')
+
+    >>> m1, _, _ = Move.find([])
+    >>> l1, l2 = m1.lines
+    >>> analytic_account1, = l1.analytic_accounts
+    >>> analytic_account2, = l2.analytic_accounts
+    >>> analytic_account1.root.id
+    1
+    >>> analytic_account1.account
+    >>> analytic_account2.root.id
+    1
+    >>> analytic_account2.account.id
+    2
