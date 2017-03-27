@@ -1,14 +1,17 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from trytond.model import ModelView, fields
+from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
+from trytond.pyson import Eval, If
+from trytond.transaction import Transaction
 from trytond.modules.analytic_account import AnalyticMixin
 
-__all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry']
-__metaclass__ = PoolMeta
+__all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry',
+    'MoveLineTemplate', 'AnalyticAccountLineTemplate']
 
 
 class Move:
+    __metaclass__ = PoolMeta
     __name__ = 'account.move'
 
     @classmethod
@@ -44,6 +47,7 @@ class Move:
 
 
 class MoveLine(AnalyticMixin):
+    __metaclass__ = PoolMeta
     __name__ = 'account.move.line'
 
     @classmethod
@@ -105,6 +109,7 @@ class MoveLine(AnalyticMixin):
 
 
 class AnalyticAccountEntry:
+    __metaclass__ = PoolMeta
     __name__ = 'analytic.account.entry'
 
     @classmethod
@@ -131,3 +136,62 @@ class AnalyticAccountEntry:
             [('origin.move.company',) + tuple(clause[1:]) +
                 ('account.move.line',)],
             ]
+
+
+class MoveLineTemplate:
+    __metaclass__ = PoolMeta
+    __name__ = 'account.move.line.template'
+    analytic_accounts = fields.One2Many('analytic_account.line.template', 'line',
+        'Analytic Accounts')
+
+    def get_line(self, values):
+        line = super(MoveLineTemplate, self).get_line(values)
+
+        analytic_accounts = []
+        for a in self.analytic_accounts:
+            analytic_accounts.append({
+                    'root': a.root.id,
+                    'account': a.account.id,
+                    })
+        if analytic_accounts:
+            line.analytic_accounts = analytic_accounts
+
+        return line
+
+
+class AnalyticAccountLineTemplate(ModelSQL, ModelView):
+    'Analytic Account Line Template'
+    __name__ = 'analytic_account.line.template'
+    company = fields.Many2One('company.company', 'Company', required=True)
+    line = fields.Many2One('account.move.line.template', 'Line', required=True)
+    root = fields.Many2One('analytic_account.account', 'Root Analytic',
+        domain=[
+            If(~Eval('company'),
+                # No constraint if the origin is not set
+                (),
+                ('company', '=', Eval('company', -1))),
+            ('type', '=', 'root'),
+            ],
+        depends=['company'])
+    account = fields.Many2One('analytic_account.account', 'Account',
+        ondelete='RESTRICT',
+        states={
+            'required': Eval('required', False),
+            },
+        domain=[
+            ('root', '=', Eval('root')),
+            ('type', '=', 'normal'),
+            ],
+        depends=['root', 'required', 'company'])
+    required = fields.Function(fields.Boolean('Required'),
+        'on_change_with_required')
+
+    @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
+
+    @fields.depends('root')
+    def on_change_with_required(self, name=None):
+        if self.root:
+            return self.root.mandatory
+        return False
