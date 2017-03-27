@@ -2,6 +2,7 @@
 # copyright notices and license terms.
 from trytond.pool import Pool
 from . import move
+from . import invoice
 
 
 def register():
@@ -11,4 +12,5 @@ def register():
         move.AnalyticAccountEntry,
         move.MoveLineTemplate,
         move.AnalyticAccountLineTemplate,
+        invoice.InvoiceLine,
         module='analytic_account_move', type_='model')
