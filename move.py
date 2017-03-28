@@ -24,12 +24,12 @@ class Move:
     def create_analytic_lines(cls, moves):
         for move in moves:
             for line in move.lines:
-                if (line.analytic_accounts and
-                    line.set_analytic_lines(
-                        line.analytic_accounts
-                    )
-                ):
-                    line.save()
+                if line.analytic_accounts and not line.analytic_lines:
+                    analytic_lines = line.set_analytic_lines(
+                        line.analytic_accounts)
+                    if analytic_lines:
+                        line.analytic_lines = analytic_lines
+                        line.save()
 
     @classmethod
     @ModelView.button
@@ -63,8 +63,7 @@ class MoveLine(AnalyticMixin):
             'lines are deleted to be generated again when post it.')
 
     def set_analytic_lines(self, analytic_accounts):
-        pool = Pool()
-        AnalyticLine = pool.get('analytic_account.line')
+        AnalyticLine = Pool().get('analytic_account.line')
 
         analytic_lines = []
         for entry in analytic_accounts:
@@ -81,8 +80,7 @@ class MoveLine(AnalyticMixin):
             analytic_line.party = self.party
             analytic_line.active = True
             analytic_lines.append(analytic_line)
-        self.analytic_lines = analytic_lines
-        return True
+        return analytic_lines
 
     @classmethod
     def copy(cls, lines, default=None):
