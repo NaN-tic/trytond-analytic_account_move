@@ -12,5 +12,5 @@ def register():
         move.AnalyticAccountEntry,
         move.MoveLineTemplate,
         move.AnalyticAccountLineTemplate,
-        invoice.InvoiceLine,
+        invoice.Invoice,
         module='analytic_account_move', type_='model')
