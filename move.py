@@ -62,6 +62,19 @@ class MoveLine(AnalyticMixin):
             'If you set draft a move with analytic accounts, the analytic '
             'lines are deleted to be generated again when post it.')
 
+    def get_analytic_line_name(self):
+        return self.description if self.description else self.move_description
+
+    def get_analytic_line_party(self):
+        if self.party:
+            return self.party
+        if self.move.origin and hasattr(self.move.origin, 'party'):
+            return self.move.origin.party
+
+    def get_analytic_line_reference(self):
+        if self.move.origin and hasattr(self.move.origin, 'reference'):
+            return self.move.origin.reference
+
     def set_analytic_lines(self, analytic_accounts):
         AnalyticLine = Pool().get('analytic_account.line')
 
@@ -69,15 +82,16 @@ class MoveLine(AnalyticMixin):
         for entry in analytic_accounts:
             if not entry.account:
                 continue
+
             analytic_line = AnalyticLine()
-            analytic_line.name = (self.description if self.description
-                else self.move_description)
+            analytic_line.name = self.get_analytic_line_name()
             analytic_line.debit = self.debit
             analytic_line.credit = self.credit
             analytic_line.account = entry.account
             analytic_line.journal = self.journal
             analytic_line.date = self.date
-            analytic_line.party = self.party
+            analytic_line.party = self.get_analytic_line_party()
+            analytic_line.reference = self.get_analytic_line_reference()
             analytic_line.active = True
             analytic_lines.append(analytic_line)
         return analytic_lines
