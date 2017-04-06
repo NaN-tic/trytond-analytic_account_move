@@ -2,7 +2,28 @@
 # copyright notices and license terms.
 from trytond.pool import Pool, PoolMeta
 
-__all__ = ['InvoiceLine']
+__all__ = ['Invoice', 'InvoiceLine']
+
+
+class Invoice:
+    __metaclass__ = PoolMeta
+    __name__ = 'account.invoice'
+
+    @classmethod
+    def cancel(cls, invoices):
+        AnalyticLine = Pool().get('analytic_account.line')
+
+        to_remove = []
+        for invoice in invoices:
+            if not invoice.move:
+                continue
+            for line in invoice.move.lines:
+                if line.analytic_lines:
+                    to_remove += line.analytic_lines
+        if to_remove:
+            AnalyticLine.delete(to_remove)
+
+        super(Invoice, cls).cancel(invoices)
 
 
 class InvoiceLine:
