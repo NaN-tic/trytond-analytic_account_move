@@ -11,12 +11,18 @@ class Invoice:
 
     @classmethod
     def cancel(cls, invoices):
-        Move = Pool().get('account.move')
+        AnalyticLine = Pool().get('analytic_account.line')
 
-        to_remove = [invoice.move for invoice in invoices if invoice.move]
+        to_remove = []
+        for invoice in invoices:
+            if not invoice.move:
+                continue
+            for line in invoice.move.lines:
+                if line.analytic_lines:
+                    to_remove += line.analytic_lines
         if to_remove:
-            Move.draft(to_remove)
-            Move.delete(to_remove)
+            AnalyticLine.delete(to_remove)
+
         super(Invoice, cls).cancel(invoices)
 
 
