@@ -5,11 +5,11 @@ from trytond.pool import Pool, PoolMeta
 from trytond.modules.analytic_account import AnalyticMixin
 
 __all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry']
-__metaclass__ = PoolMeta
 
 
 class Move:
     __name__ = 'account.move'
+    __metaclass__ = PoolMeta
 
     @classmethod
     @ModelView.button
@@ -45,6 +45,7 @@ class Move:
 
 class MoveLine(AnalyticMixin):
     __name__ = 'account.move.line'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
@@ -106,6 +107,7 @@ class MoveLine(AnalyticMixin):
 
 class AnalyticAccountEntry:
     __name__ = 'analytic.account.entry'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def _get_origin(cls):
