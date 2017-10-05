@@ -13,3 +13,74 @@ msgstr "Cuentas analíticas"
 msgctxt "field:account.move.line,analytic_accounts_size:"
 msgid "Analytic Accounts Size"
 msgstr "Tamaño de cuentas analíticas"
+
+msgctxt "field:account.move.line.template,analytic_accounts:"
+msgid "Analytic Accounts"
+msgstr "Cuentas analíticas"
+
+msgctxt "field:analytic_account.line.template,account:"
+msgid "Account"
+msgstr "Cuenta"
+
+msgctxt "field:analytic_account.line.template,company:"
+msgid "Company"
+msgstr "Empresa"
+
+msgctxt "field:analytic_account.line.template,create_date:"
+msgid "Create Date"
+msgstr "Fecha de creación"
+
+msgctxt "field:analytic_account.line.template,create_uid:"
+msgid "Create User"
+msgstr "Usuario de creación"
+
+msgctxt "field:analytic_account.line.template,id:"
+msgid "ID"
+msgstr "ID"
+
+msgctxt "field:analytic_account.line.template,line:"
+msgid "Line"
+msgstr "Línea"
+
+msgctxt "field:analytic_account.line.template,rec_name:"
+msgid "Name"
+msgstr "Nombre"
+
+msgctxt "field:analytic_account.line.template,required:"
+msgid "Required"
+msgstr "Obligatorio"
+
+msgctxt "field:analytic_account.line.template,root:"
+msgid "Root Analytic"
+msgstr "Cuenta raíz analítica"
+
+msgctxt "field:analytic_account.line.template,write_date:"
+msgid "Write Date"
+msgstr "Fecha de modificación"
+
+msgctxt "field:analytic_account.line.template,write_uid:"
+msgid "Write User"
+msgstr "Usuario de modificación"
+
+msgctxt "help:account.move.line,analytic_accounts:"
+msgid ""
+"Fill it if you want to generate analytic lines when post the move.\n"
+"Normally, it isn't necessary when the move is generated from another document which will have the analytics configuration.\n"
+"If you set draft a move with analytic accounts, the analytic lines are deleted to be generated again when post it."
+msgstr "Crea línia analítcas en el momento de crear los asientos."
+
+msgctxt "model:analytic_account.line.template,name:"
+msgid "Analytic Account Line Template"
+msgstr "Plantilla línea cuenta analítica"
+
+msgctxt "model:ir.action,name:act_analytic_account_line_template_form"
+msgid "Analytic Account Line Template"
+msgstr "Plantilla línea cuenta analítica"
+
+msgctxt "view:analytic_account.line.template:"
+msgid "Analytic Account Line Template"
+msgstr "Plantilla línea cuenta analítica"
+
+msgctxt "view:analytic_account.line.template:"
+msgid "Analytic Account Line Templates"
+msgstr "Plantillas línea cuenta analítica"

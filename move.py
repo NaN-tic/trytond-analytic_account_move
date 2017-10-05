@@ -1,14 +1,17 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from trytond.model import ModelView, fields
+from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
+from trytond.pyson import Eval, If
+from trytond.transaction import Transaction
 from trytond.modules.analytic_account import AnalyticMixin
 
-__all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry']
-__metaclass__ = PoolMeta
+__all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry',
+    'MoveLineTemplate', 'AnalyticAccountLineTemplate']
 
 
 class Move:
+    __metaclass__ = PoolMeta
     __name__ = 'account.move'
 
     @classmethod
@@ -21,10 +24,12 @@ class Move:
     def create_analytic_lines(cls, moves):
         for move in moves:
             for line in move.lines:
-                if (line.analytic_accounts and
-                    line.set_analytic_lines_from_analytic_accounts()
-                ):
-                    line.save()
+                if line.analytic_accounts and not line.analytic_lines:
+                    analytic_lines = line.set_analytic_lines(
+                        line.analytic_accounts)
+                    if analytic_lines:
+                        line.analytic_lines = analytic_lines
+                        line.save()
 
     @classmethod
     @ModelView.button
@@ -44,6 +49,7 @@ class Move:
 
 
 class MoveLine(AnalyticMixin):
+    __metaclass__ = PoolMeta
     __name__ = 'account.move.line'
 
     @classmethod
@@ -56,27 +62,39 @@ class MoveLine(AnalyticMixin):
             'If you set draft a move with analytic accounts, the analytic '
             'lines are deleted to be generated again when post it.')
 
-    def set_analytic_lines_from_analytic_accounts(self):
-        pool = Pool()
-        AnalyticLine = pool.get('analytic_account.line')
+    def get_analytic_line_name(self):
+        return self.description if self.description else self.move_description
+
+    def get_analytic_line_party(self):
+        if self.party:
+            return self.party
+        if self.move.origin and hasattr(self.move.origin, 'party'):
+            return self.move.origin.party
+
+    def get_analytic_line_reference(self):
+        if self.move.origin and hasattr(self.move.origin, 'reference'):
+            return self.move.origin.reference
+
+    def set_analytic_lines(self, analytic_accounts):
+        AnalyticLine = Pool().get('analytic_account.line')
 
         analytic_lines = []
-        for entry in self.analytic_accounts:
+        for entry in analytic_accounts:
             if not entry.account:
                 continue
+
             analytic_line = AnalyticLine()
-            analytic_line.name = (self.description if self.description
-                else self.move_description)
+            analytic_line.name = self.get_analytic_line_name()
             analytic_line.debit = self.debit
             analytic_line.credit = self.credit
             analytic_line.account = entry.account
             analytic_line.journal = self.journal
             analytic_line.date = self.date
-            analytic_line.party = self.party
+            analytic_line.party = self.get_analytic_line_party()
+            analytic_line.reference = self.get_analytic_line_reference()
             analytic_line.active = True
             analytic_lines.append(analytic_line)
-        self.analytic_lines = analytic_lines
-        return bool(len(analytic_lines))
+        return analytic_lines
 
     @classmethod
     def copy(cls, lines, default=None):
@@ -105,6 +123,7 @@ class MoveLine(AnalyticMixin):
 
 
 class AnalyticAccountEntry:
+    __metaclass__ = PoolMeta
     __name__ = 'analytic.account.entry'
 
     @classmethod
@@ -131,3 +150,62 @@ class AnalyticAccountEntry:
             [('origin.move.company',) + tuple(clause[1:]) +
                 ('account.move.line',)],
             ]
+
+
+class MoveLineTemplate:
+    __metaclass__ = PoolMeta
+    __name__ = 'account.move.line.template'
+    analytic_accounts = fields.One2Many('analytic_account.line.template', 'line',
+        'Analytic Accounts')
+
+    def get_line(self, values):
+        line = super(MoveLineTemplate, self).get_line(values)
+
+        analytic_accounts = []
+        for a in self.analytic_accounts:
+            analytic_accounts.append({
+                    'root': a.root.id,
+                    'account': a.account.id,
+                    })
+        if analytic_accounts:
+            line.analytic_accounts = analytic_accounts
+
+        return line
+
+
+class AnalyticAccountLineTemplate(ModelSQL, ModelView):
+    'Analytic Account Line Template'
+    __name__ = 'analytic_account.line.template'
+    company = fields.Many2One('company.company', 'Company', required=True)
+    line = fields.Many2One('account.move.line.template', 'Line', required=True)
+    root = fields.Many2One('analytic_account.account', 'Root Analytic',
+        domain=[
+            If(~Eval('company'),
+                # No constraint if the origin is not set
+                (),
+                ('company', '=', Eval('company', -1))),
+            ('type', '=', 'root'),
+            ],
+        depends=['company'])
+    account = fields.Many2One('analytic_account.account', 'Account',
+        ondelete='RESTRICT',
+        states={
+            'required': Eval('required', False),
+            },
+        domain=[
+            ('root', '=', Eval('root')),
+            ('type', '=', 'normal'),
+            ],
+        depends=['root', 'required', 'company'])
+    required = fields.Function(fields.Boolean('Required'),
+        'on_change_with_required')
+
+    @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
+
+    @fields.depends('root')
+    def on_change_with_required(self, name=None):
+        if self.root:
+            return self.root.mandatory
+        return False
