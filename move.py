@@ -31,22 +31,6 @@ class Move:
                         line.analytic_lines = analytic_lines
                         line.save()
 
-    @classmethod
-    @ModelView.button
-    def draft(cls, moves):
-        pool = Pool()
-        AnalyticLine = pool.get('analytic_account.line')
-
-        super(Move, cls).draft(moves)
-
-        to_delete = []
-        for move in moves:
-            for line in move.lines:
-                if line.analytic_accounts:
-                    to_delete += [al for al in line.analytic_lines]
-        if to_delete:
-            AnalyticLine.delete(to_delete)
-
 
 class MoveLine(AnalyticMixin):
     __metaclass__ = PoolMeta
@@ -155,8 +139,8 @@ class AnalyticAccountEntry:
 class MoveLineTemplate:
     __metaclass__ = PoolMeta
     __name__ = 'account.move.line.template'
-    analytic_accounts = fields.One2Many('analytic_account.line.template', 'line',
-        'Analytic Accounts')
+    analytic_accounts = fields.One2Many(
+        'analytic_account.line.template', 'line', 'Analytic Accounts')
 
     def get_line(self, values):
         line = super(MoveLineTemplate, self).get_line(values)

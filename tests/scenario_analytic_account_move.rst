@@ -6,24 +6,15 @@ Imports::
 
     >>> from decimal import Decimal
     >>> from proteus import config, Model, Wizard
+    >>> from trytond.tests.tools import activate_modules
     >>> from trytond.modules.company.tests.tools import create_company, \
     ...     get_company
     >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
     ...     create_chart, get_accounts
 
-Create database::
+Install analytic_account_move::
 
-    >>> config = config.set_trytond()
-    >>> config.pool.test = True
-
-Install account::
-
-    >>> Module = Model.get('ir.module')
-    >>> module, = Module.find([
-    ...         ('name', '=', 'analytic_account_move'),
-    ...         ])
-    >>> module.click('install')
-    >>> Wizard('ir.module.install_upgrade').execute('upgrade')
+    >>> config = activate_modules('analytic_account_move')
 
 Create company::
 
@@ -147,27 +138,6 @@ Post the duplicated move and check analytic accounts amounts::
     >>> project2_analytic_acc.reload()
     >>> project2_analytic_acc.debit
     Decimal('3000.00')
-
-Move to draft Wage Payment Move::
-
-    >>> journal_expense.update_posted = True
-    >>> journal_expense.save()
-    >>> move.click('draft')
-
-Check analytic lines has been removed::
-
-    >>> move.reload()
-    >>> [l.analytic_lines for l in move.lines]
-    [[], [], [], []]
-
-Check analytic accounts amounts::
-
-    >>> project1_analytic_acc.reload()
-    >>> project1_analytic_acc.debit
-    Decimal('2000.00')
-    >>> project2_analytic_acc.reload()
-    >>> project2_analytic_acc.debit
-    Decimal('1500.00')
 
 Delete an analytic account::
 
