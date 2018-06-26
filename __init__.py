@@ -12,6 +12,10 @@ def register():
         move.AnalyticAccountEntry,
         move.MoveLineTemplate,
         move.AnalyticAccountLineTemplate,
+        module='analytic_account_move', type_='model')
+    Pool.register(
         invoice.Invoice,
         invoice.InvoiceLine,
-        module='analytic_account_move', type_='model')
+        depends=['account_invoice'],
+        module="analytic_account_move", type_='model'
+    )

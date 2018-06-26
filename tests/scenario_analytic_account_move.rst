@@ -14,7 +14,7 @@ Imports::
 
 Install analytic_account_move::
 
-    >>> config = activate_modules('analytic_account_move')
+    >>> config = activate_modules(['analytic_account_move'])
 
 Create company::
 
