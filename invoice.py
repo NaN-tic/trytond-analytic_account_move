@@ -5,8 +5,7 @@ from trytond.pool import Pool, PoolMeta
 __all__ = ['Invoice', 'InvoiceLine']
 
 
-class Invoice:
-    __metaclass__ = PoolMeta
+class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
     @classmethod
@@ -26,8 +25,7 @@ class Invoice:
         super(Invoice, cls).cancel(invoices)
 
 
-class InvoiceLine:
-    __metaclass__ = PoolMeta
+class InvoiceLine(metaclass=PoolMeta):
     __name__ = 'account.invoice.line'
 
     def get_move_line(self):

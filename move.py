@@ -10,8 +10,7 @@ __all__ = ['Move', 'MoveLine', 'AnalyticAccountEntry',
     'MoveLineTemplate', 'AnalyticAccountLineTemplate']
 
 
-class Move:
-    __metaclass__ = PoolMeta
+class Move(metaclass=PoolMeta):
     __name__ = 'account.move'
 
     @classmethod
@@ -32,8 +31,7 @@ class Move:
                         line.save()
 
 
-class MoveLine(AnalyticMixin):
-    __metaclass__ = PoolMeta
+class MoveLine(AnalyticMixin, metaclass=PoolMeta):
     __name__ = 'account.move.line'
 
     @classmethod
@@ -106,8 +104,7 @@ class MoveLine(AnalyticMixin):
         return new_records
 
 
-class AnalyticAccountEntry:
-    __metaclass__ = PoolMeta
+class AnalyticAccountEntry(metaclass=PoolMeta):
     __name__ = 'analytic.account.entry'
 
     @classmethod
@@ -136,8 +133,7 @@ class AnalyticAccountEntry:
             ]
 
 
-class MoveLineTemplate:
-    __metaclass__ = PoolMeta
+class MoveLineTemplate(metaclass=PoolMeta):
     __name__ = 'account.move.line.template'
     analytic_accounts = fields.One2Many(
         'analytic_account.line.template', 'line', 'Analytic Accounts')

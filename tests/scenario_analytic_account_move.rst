@@ -127,7 +127,7 @@ Copy the move and check analytic lines has been removed but not the accounts::
     [[], [], [], []]
     >>> sorted([l.analytic_accounts[0].account.name
     ...         for l in move.lines if l.account.id == expense.id])
-    [u'Project 1', u'Project 2']
+    ['Project 1', 'Project 2']
 
 Post the duplicated move and check analytic accounts amounts::
 
