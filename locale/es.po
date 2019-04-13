@@ -46,10 +46,6 @@ msgctxt "field:analytic_account.line.template,rec_name:"
 msgid "Name"
 msgstr "Nombre"
 
-msgctxt "field:analytic_account.line.template,required:"
-msgid "Required"
-msgstr "Obligatorio"
-
 msgctxt "field:analytic_account.line.template,root:"
 msgid "Root Analytic"
 msgstr "Cuenta raíz analítica"

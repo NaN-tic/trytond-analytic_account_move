@@ -169,23 +169,12 @@ class AnalyticAccountLineTemplate(ModelSQL, ModelView):
         depends=['company'])
     account = fields.Many2One('analytic_account.account', 'Account',
         ondelete='RESTRICT',
-        states={
-            'required': Eval('required', False),
-            },
         domain=[
             ('root', '=', Eval('root')),
             ('type', '=', 'normal'),
             ],
-        depends=['root', 'required', 'company'])
-    required = fields.Function(fields.Boolean('Required'),
-        'on_change_with_required')
+        depends=['root', 'company'])
 
     @staticmethod
     def default_company():
         return Transaction().context.get('company')
-
-    @fields.depends('root')
-    def on_change_with_required(self, name=None):
-        if self.root:
-            return self.root.mandatory
-        return False
