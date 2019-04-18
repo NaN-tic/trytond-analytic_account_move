@@ -28,10 +28,10 @@ class Invoice(metaclass=PoolMeta):
 class InvoiceLine(metaclass=PoolMeta):
     __name__ = 'account.invoice.line'
 
-    def get_move_line(self):
+    def get_move_lines(self):
         AnalyticAccountEntry = Pool().get('analytic.account.entry')
 
-        lines = super(InvoiceLine, self).get_move_line()
+        lines = super(InvoiceLine, self).get_move_lines()
 
         if self.analytic_accounts:
             for line in lines:
