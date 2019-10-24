@@ -66,15 +66,10 @@ class MoveLine(AnalyticMixin, metaclass=PoolMeta):
                 continue
 
             analytic_line = AnalyticLine()
-            analytic_line.name = self.get_analytic_line_name()
             analytic_line.debit = self.debit
             analytic_line.credit = self.credit
             analytic_line.account = entry.account
-            analytic_line.journal = self.journal
             analytic_line.date = self.date
-            analytic_line.party = self.get_analytic_line_party()
-            analytic_line.reference = self.get_analytic_line_reference()
-            analytic_line.active = True
             analytic_lines.append(analytic_line)
         return analytic_lines
 
