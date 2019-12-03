@@ -21,6 +21,8 @@ class Move(metaclass=PoolMeta):
 
     @classmethod
     def create_analytic_lines(cls, moves):
+        lines = []
+        Line = Pool().get('account.move.line')
         for move in moves:
             for line in move.lines:
                 if line.analytic_accounts and not line.analytic_lines:
@@ -28,8 +30,8 @@ class Move(metaclass=PoolMeta):
                         line.analytic_accounts)
                     if analytic_lines:
                         line.analytic_lines = analytic_lines
-                        line.save()
-
+                        lines.append(line)
+        Line.save(lines)
 
 class MoveLine(AnalyticMixin, metaclass=PoolMeta):
     __name__ = 'account.move.line'
