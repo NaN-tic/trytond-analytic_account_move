@@ -36,6 +36,12 @@ class Move(metaclass=PoolMeta):
 class MoveLine(AnalyticMixin, metaclass=PoolMeta):
     __name__ = 'account.move.line'
 
+    company = fields.Function(fields.Many2One('company.company', 'Company'),
+        'on_change_with_company')
+
+    def on_change_with_company(self, name=None):
+        return Transaction().context.get('company') or None
+
     @classmethod
     def __setup__(cls):
         super(MoveLine, cls).__setup__()
@@ -45,6 +51,12 @@ class MoveLine(AnalyticMixin, metaclass=PoolMeta):
             'another document which will have the analytics configuration.\n'
             'If you set draft a move with analytic accounts, the analytic '
             'lines are deleted to be generated again when post it.')
+        cls.analytic_accounts.domain = [
+            ('company', '=', If(~Eval('company'),
+                    Eval('context', {}).get('company', -1),
+                    Eval('company', -1))),
+            ]
+        cls.analytic_accounts.depends.append('company')
 
     def get_analytic_line_name(self):
         return self.description if self.description else self.move_description
