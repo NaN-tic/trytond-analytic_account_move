@@ -155,7 +155,7 @@ Create Move Template::
     >>> line_template = MoveLineTemplate()
     >>> move_template.lines.append(line_template)
     >>> line_template.operation = 'debit'
-    >>> line_template.amount = '10'
+    >>> line_template.amount = '10.0'
     >>> line_template.account = expense
     >>> analytic_line_template = AnalyticLineTemplate()
     >>> line_template.analytic_accounts.append(analytic_line_template)
@@ -164,7 +164,7 @@ Create Move Template::
     >>> line_template = MoveLineTemplate()
     >>> move_template.lines.append(line_template)
     >>> line_template.operation = 'credit'
-    >>> line_template.amount = '10'
+    >>> line_template.amount = '10.0'
     >>> line_template.account = expense
     >>> move_template.save()
 
