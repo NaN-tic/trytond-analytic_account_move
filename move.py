@@ -56,7 +56,7 @@ class MoveLine(AnalyticMixin, metaclass=PoolMeta):
                     Eval('context', {}).get('company', -1),
                     Eval('company', -1))),
             ]
-        cls.analytic_accounts.depends.append('company')
+        cls.analytic_accounts.depends.add('company')
 
     def get_analytic_line_name(self):
         return self.description if self.description else self.move_description
