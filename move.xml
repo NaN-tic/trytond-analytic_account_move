@@ -80,5 +80,17 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
+
+        <record model="ir.rule.group" id="rule_group_analytic_account_line_template">
+            <field name="name">User in company</field>
+            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="global_p" eval="True"/>
+        </record>
+        <record model="ir.rule" id="rule_analytic_account_line_template1">
+            <field name="domain"
+                eval="[('company', 'in', Eval('companies', []))]"
+                pyson="1"/>
+            <field name="rule_group" ref="rule_group_analytic_account_line_template"/>
+        </record>
     </data>
 </tryton>
