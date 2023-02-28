@@ -16,6 +16,6 @@ def register():
     Pool.register(
         invoice.Invoice,
         invoice.InvoiceLine,
-        depends=['account_invoice'],
+        depends=['analytic_invoice'],
         module="analytic_account_move", type_='model'
     )
