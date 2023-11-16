@@ -52,7 +52,7 @@ class MoveLine(AnalyticMixin, metaclass=PoolMeta):
             'If you set draft a move with analytic accounts, the analytic '
             'lines are deleted to be generated again when post it.')
         cls.analytic_accounts.domain = [
-            ('company', '=', If(~Eval('company'),
+            ('company', '=', If(~Eval('company', -1),
                     Eval('context', {}).get('company', -1),
                     Eval('company', -1))),
             ]
@@ -169,7 +169,7 @@ class AnalyticAccountLineTemplate(ModelSQL, ModelView):
     line = fields.Many2One('account.move.line.template', 'Line', required=True)
     root = fields.Many2One('analytic_account.account', 'Root Analytic',
         domain=[
-            If(~Eval('company'),
+            If(~Eval('company', -1),
                 # No constraint if the origin is not set
                 (),
                 ('company', '=', Eval('company', -1))),
