@@ -174,15 +174,13 @@ class AnalyticAccountLineTemplate(ModelSQL, ModelView):
                 (),
                 ('company', '=', Eval('company', -1))),
             ('type', '=', 'root'),
-            ],
-        depends=['company'])
+            ])
     account = fields.Many2One('analytic_account.account', 'Account',
         ondelete='RESTRICT',
         domain=[
             ('root', '=', Eval('root')),
             ('type', '=', 'normal'),
-            ],
-        depends=['root', 'company'])
+            ])
 
     @staticmethod
     def default_company():
