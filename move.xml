@@ -58,14 +58,14 @@
 
         <!-- Access -->
         <record model="ir.model.access" id="access_analytic_account_line_template">
-            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="model">analytic_account.line.template</field>
             <field name="perm_read" eval="False"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_delete" eval="False"/>
         </record>
         <record model="ir.model.access" id="access_analytic_account_line_template_account">
-            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="model">analytic_account.line.template</field>
             <field name="group" ref="account.group_account"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
@@ -73,7 +73,7 @@
             <field name="perm_delete" eval="False"/>
         </record>
         <record model="ir.model.access" id="access_analytic_account_line_template_account_admin">
-            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="model">analytic_account.line.template</field>
             <field name="group" ref="account.group_account_admin"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -83,7 +83,7 @@
 
         <record model="ir.rule.group" id="rule_group_analytic_account_line_template">
             <field name="name">User in company</field>
-            <field name="model" search="[('model', '=', 'analytic_account.line.template')]"/>
+            <field name="model">analytic_account.line.template</field>
             <field name="global_p" eval="True"/>
         </record>
         <record model="ir.rule" id="rule_analytic_account_line_template1">
