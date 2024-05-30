@@ -176,13 +176,13 @@ Create Moves from template::
     >>> create.execute('create_')
 
     >>> m1, _, _ = Move.find([])
-    >>> l1, l2 = m1.lines
+    >>> l1, l2 = sorted(m1.lines, key=lambda x: x.id)
     >>> analytic_account1, = l1.analytic_accounts
-    >>> analytic_account2, = l2.analytic_accounts
     >>> analytic_account1.root.id
     1
-    >>> analytic_account1.account
+    >>> analytic_account1.account.id
+    2
+    >>> analytic_account2, = l2.analytic_accounts
     >>> analytic_account2.root.id
     1
-    >>> analytic_account2.account.id
-    2
+    >>> analytic_account2.account
