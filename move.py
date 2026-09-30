@@ -86,6 +86,12 @@ class MoveLine(AnalyticMixin, metaclass=PoolMeta):
 
     @classmethod
     def copy(cls, lines, default=None):
+        if default is None:
+            default = {}
+        else:
+            default = default.copy()
+        default.setdefault('analytic_state', 'draft')
+
         lines_w_aa = []
         lines_wo_aa = []
         for line in lines:
@@ -96,10 +102,7 @@ class MoveLine(AnalyticMixin, metaclass=PoolMeta):
 
         new_records = []
         if lines_w_aa:
-            if default:
-                new_default = default.copy()
-            else:
-                new_default = {}
+            new_default = default.copy()
             new_default['analytic_lines'] = None
             new_records += super(MoveLine, cls).copy(lines_w_aa,
                 default=new_default)
